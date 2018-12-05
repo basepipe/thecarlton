@@ -18,6 +18,14 @@ def style(widget):
                          "QToolBar { background-color: lightgrey }")
 
 
+class Show:
+    def __init__(self, name, prod_days, start_date):
+        self.name = name
+        self.prod_days = prod_days
+        self.start_date = start_date
+        print("Show created! Name:", self.name, "Start date:", self.start_date, "Days of Production:", self.prod_days)
+
+
 class CrewPanel(QDockWidget):
     def __init__(self):
         super().__init__()
@@ -114,9 +122,9 @@ class MainWindow(QMainWindow):
 
         self.create_panels()
         toolbar = self.addToolBar("Toolbar")
-        toolbar.addAction("New Show")
-        toolbar.addAction("New Position")
-        print("Toolbar is", toolbar)
+        toolbar.addAction("New Show", self.create_new_show)
+
+        self.shows = []
 
     def create_panels(self):
         crew_dock = CrewPanel()
@@ -124,6 +132,31 @@ class MainWindow(QMainWindow):
 
         pos_dock = PositionPanel()
         self.addDockWidget(Qt.RightDockWidgetArea, pos_dock)
+
+    def create_new_show(self):
+        w = QDialog()
+        w.setWindowTitle("Create New Show")
+        w.setLayout(QFormLayout())
+        show_name = QLineEdit("New Show")
+        w.layout().addRow(QLabel("New Show Title:"), show_name)
+        prod_days = QSpinBox()
+        w.layout().addRow(QLabel("Days of production:"), prod_days)
+        calendar_input = QCalendarWidget()
+        w.layout().addRow(QLabel("Start date:"))
+        w.layout().addRow(calendar_input)
+        if self.shows:  # If a show has already been created.
+            previous_show = self.shows[-1]
+            prod_days.setValue(previous_show.prod_days)
+        accept = QPushButton("Create")
+        accept.clicked.connect(w.accept)
+        reject = QPushButton("Cancel")
+        reject.clicked.connect(w.reject)
+        w.layout().addRow(accept, reject)
+        if w.exec_() == QDialog.Accepted:
+            print("New show name:", show_name.text(), "Days of pre-production", prod_days.value())
+            selected_date = calendar_input.selectedDate()
+            start_date = datetime.date(selected_date.year(), selected_date.month(), selected_date.day())
+            self.shows.append(Show(show_name.text(), prod_days.value(), start_date))
 
     def get_date(self, is_start):
         w = QDialog()
